@@ -69,74 +69,107 @@ Check the following sites for more information about WebdriverIO/Appium
 - [Appium Docs](http://appium.io/docs/en/about-appium/intro/)
 - [Appium Pro Newsletter](http://appiumpro.com)
 
-## Helpers
-The following helpers can be found [here](../tests/helpers/)
+## Allure Reporting
 
-- Gestures (static methods)
-- Webview
+### Required Packages
 
-There are also two components objects that can be useful:
+Install the following packages to enable Allure reporting:
 
-- Native alerts (static methods)
-- Picker (static methods)
+```sh
+# NPM packages
+npm install --save-dev @wdio/allure-reporter allure-commandline
 
-and can be found [here](./tests/screenobjects/components/).
-
-These helpers and component objects can be used to easily automate certain actions with native apps without reinventing the wheel again.
-Just copy them in your project and use them.
-
-## Is it wise to use XPATH?
-The advice is to prevent using XPATH unless there is no other option. XPATH is a brittle locator strategy and will take some time to find
-elements on a page.
-More info about that can be found in the [Appium Pro News letters](https://appiumpro.com):
-- [Making Your Appium Tests Fast and Reliable, Part 2: Finding Elements](https://appiumpro.com/editions/20)
-- [How to Find Elements in iOS (Not) By XPath](https://appiumpro.com/editions/8)
-
-### Example
-A testcase can be found [here](../tests/specs/app.webview.xpath.spec.ts) that illustrates the difference between finding a webview by XPATH
-and in a different way.
-Checking if the WebView is loaded including the webpage can be done in **4 seconds** with this piece of JS
-
-#### XPATH logs (17 seconds)
-
-```log
-[11:30:57]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/element"
-[11:30:57]  DATA                {"using":"accessibility id","value":"WebView"}
-[11:30:57]  RESULT              {"ELEMENT":"18000000-0000-0000-0E20-000000000000"}
-[11:30:57]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/element/18000000-0000-0000-0E20-000000000000/click"
-[11:30:57]  DATA                {}
-[11:30:57]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/elements"
-[11:30:57]  DATA                {"using":"xpath","value":"*//XCUIElementTypeWebView"}
-[11:30:58]  RESULT              []
-[11:30:58]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/elements"
-[11:30:58]  DATA                {"using":"xpath","value":"*//XCUIElementTypeWebView"}
-[11:30:58]  RESULT              []
-[11:30:58]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/elements"
-[11:30:58]  DATA                {"using":"xpath","value":"*//XCUIElementTypeWebView"}
-[11:30:59]  RESULT              []
-[11:30:59]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/elements"
-[11:30:59]  DATA                {"using":"xpath","value":"*//XCUIElementTypeWebView"}
-[11:30:59]  RESULT              []
-[11:30:59]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/elements"
-[11:30:59]  DATA                {"using":"xpath","value":"*//XCUIElementTypeWebView"}
-[11:31:00]  RESULT              []
-[11:31:00]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/elements"
-[11:31:00]  DATA                {"using":"xpath","value":"*//XCUIElementTypeWebView"}
-[11:31:11]  RESULT              [{"ELEMENT":"38000000-0000-0000-0E20-000000000000"}]
-[11:31:11]  COMMAND     GET      "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/element/38000000-0000-0000-0E20-000000000000/displayed"
-[11:31:11]  DATA                {}
-[11:31:15]  RESULT              true
+# FFmpeg (required for video recording attachments)
+brew install ffmpeg
 ```
 
-#### Smarter way logs (0.5 seconds)
+| Package | Description |
+|---------|-------------|
+| `@wdio/allure-reporter` | WebdriverIO plugin that generates Allure-compatible test results |
+| `allure-commandline` | CLI tool to generate HTML reports and serve them locally |
+| `ffmpeg` | Required for video recording and processing (macOS: `brew install ffmpeg`) |
 
-```log
-[11:31:20]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/element"
-[11:31:20]  DATA                {"using":"accessibility id","value":"WebView"}
-[11:31:20]  RESULT              {"ELEMENT":"18000000-0000-0000-2420-000000000000"}
-[11:31:20]  COMMAND     POST     "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/element/18000000-0000-0000-2420-000000000000/click"
-[11:31:20]  DATA                {}
-[11:31:21]  COMMAND     GET      "/wd/hub/session/0516bba1-e64d-4873-bdd4-1f5e8070960f/contexts"
-[11:31:21]  DATA                {}
-[11:31:21]  RESULT              ["NATIVE_APP","WEBVIEW_8228.2"]
+### Configuration
+
+Allure reporter is configured in [`wdio.shared.conf.ts`](../config/wdio.shared.conf.ts) with the following features:
+
+```typescript
+['allure', {
+    outputDir: 'allure-results',
+    disableWebdriverStepsReporting: true,
+    disableWebdriverScreenshotsReporting: false,
+}]
 ```
+
+### Automatic Attachments on Test Failure
+
+The framework automatically captures and attaches the following on test failures:
+
+1. **Screenshot** - Full screen capture at the moment of failure
+2. **Video Recording** - Screen recording of the entire test execution
+3. **Appium Server Logs** - Last 500 lines from `./logs/appium.log`
+
+### Video Recording Settings
+
+Video recording is configured differently for each platform:
+
+**Android:**
+```typescript
+await driver.startRecordingScreen({
+    videoSize: '720x1280',
+    bitRate: 3000000,  // 3 Mbps
+});
+```
+
+**iOS:**
+```typescript
+await driver.startRecordingScreen({
+    videoType: 'mpeg4',
+    videoQuality: 'medium',
+});
+```
+
+### Viewing Reports
+
+```sh
+# Quick view - generates and opens
+npm run allure:report
+
+# Or step by step
+npm run allure:generate  # Creates allure-report/
+npm run allure:open      # Opens in browser
+```
+
+### Combined Reports (Android + iOS)
+
+To generate a report containing results from both platforms:
+
+```sh
+# 1. Clean previous results
+npm run allure:clean
+
+# 2. Run Android tests (results accumulate)
+npm run android.app -- --spec=tests/specs/app.login.spec.ts
+
+# 3. Run iOS tests (results accumulate)
+npm run ios.app -- --spec=tests/specs/app.login.spec.ts
+
+# 4. Generate combined report
+npm run allure:report
+```
+
+> **Note:** Don't run `npm run allure:clean` between test runs if you want combined results.
+
+### Troubleshooting
+
+**Report shows no data:**
+- Ensure `allure-results/` directory exists and contains `.json` files
+- Run `npm run allure:generate` before `npm run allure:open`
+
+**Video not attached:**
+- Video recording requires the test to run long enough
+- Check if `driver.startRecordingScreen()` is supported on your device/emulator
+
+**Appium logs not attached:**
+- Ensure Appium is writing logs to `./logs/appium.log`
+- Check the `outputDir` setting in `wdio.shared.local.appium.conf.ts`

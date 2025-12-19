@@ -37,4 +37,16 @@ describe('WebdriverIO and Appium, when interacting with a login form,', () => {
         await NativeAlert.topOnButtonWithText('OK');
         await NativeAlert.waitForIsShown(false);
     });
+
+    // INTENTIONAL FAILURE: This test is designed to fail for Allure report demo
+    it('should fail intentionally to demonstrate Allure screenshot capture', async () => {
+        await LoginScreen.tapOnLoginContainerButton();
+        
+        // Submit the form
+        await LoginScreen.submitLoginForm({ username: 'test@webdriver.io', password: 'Test1234!' });
+        await NativeAlert.waitForIsShown();
+        
+        // This assertion will FAIL - expecting "Failure" but app shows "Success"
+        await expect(await NativeAlert.text()).toContain('This will fail intentionally');
+    });
 });

@@ -325,6 +325,72 @@ npm run ios.app -- --spec=tests/specs/app.webview.spec.ts
 npm run ios.app -- --spec=tests/specs/app.webview.xpath.spec.ts
 ```
 
+## Allure Reporting
+
+This project includes [Allure Reporter](https://docs.qameta.io/allure/) for rich test reports with screenshots, videos, and logs.
+
+### Required Packages
+
+```sh
+# NPM packages
+npm install --save-dev @wdio/allure-reporter allure-commandline
+
+# FFmpeg (required for video recording attachments)
+brew install ffmpeg
+```
+
+| Package | Description |
+|---------|-------------|
+| `@wdio/allure-reporter` | WebdriverIO plugin that generates Allure-compatible test results |
+| `allure-commandline` | CLI tool to generate HTML reports and serve them locally |
+| `ffmpeg` | Required for video recording and processing (macOS: `brew install ffmpeg`) |
+
+### Features
+
+- **Screenshots on failure** - Automatically captures screenshots when tests fail
+- **Video recording** - Records screen during test execution (attached on failure)
+- **Appium server logs** - Attaches last 500 lines of Appium logs on failure
+
+### Available Scripts
+
+```sh
+# Clean previous results
+npm run allure:clean
+
+# Generate report from results
+npm run allure:generate
+
+# Open report in browser
+npm run allure:open
+
+# Generate and open (combined)
+npm run allure:report
+```
+
+### Running Tests with Allure
+
+Results from both Android and iOS tests are stored in the same `allure-results` directory:
+
+```sh
+# Run single platform
+npm run ios.app -- --spec=tests/specs/app.login.spec.ts
+npm run allure:report
+
+# Run both platforms (combined report)
+npm run allure:clean
+npm run android.app -- --spec=tests/specs/app.login.spec.ts
+npm run ios.app -- --spec=tests/specs/app.login.spec.ts
+npm run allure:report
+```
+
+### Report Structure
+
+- `allure-results/` - Raw test data (JSON, attachments)
+- `allure-report/` - Generated HTML report
+
+> [!TIP]
+> Don't run `allure:clean` between Android and iOS test runs if you want a combined report.
+
 ## Cloud Vendors
 
 Configuration files for cloud testing are available in the [config](./config) folder:

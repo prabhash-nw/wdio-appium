@@ -1,4 +1,7 @@
 import type { Options } from '@wdio/types';
+import { join } from 'path';
+import { readFileSync, existsSync } from 'fs';
+import allure from '@wdio/allure-reporter';
 
 /**
  * All not needed configurations, for this boilerplate, are removed.
@@ -109,7 +112,15 @@ export const config: Options.Testrunner = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
-    reporters: ['spec'],
+    reporters: [
+        'spec',
+        ['allure', {
+            outputDir: 'allure-results',
+            disableWebdriverStepsReporting: true,
+            // Disable auto screenshot attachment - we manually attach with descriptive names in afterTest hook
+            disableWebdriverScreenshotsReporting: true,
+        }],
+    ],
     // Options to be passed to Mocha.
     mochaOpts: {
         ui: 'bdd',
@@ -135,4 +146,66 @@ export const config: Options.Testrunner = {
     /**
      * NOTE: No Hooks are used in this project, but feel free to add them if you need them.
      */
+
+    /**
+     * Start video recording before each test
+     */
+    beforeTest: async function(test, context) {
+        // Start screen recording for video capture
+        try {
+            if (driver.isAndroid) {
+                await driver.startRecordingScreen({
+                    videoSize: '720x1280',
+                    timeLimit: 180, // 3 minutes max
+                    bitRate: 3000000,
+                });
+            } else if (driver.isIOS) {
+                await driver.startRecordingScreen({
+                    videoType: 'mpeg4',
+                    videoQuality: 'medium',
+                    timeLimit: 180,
+                });
+            }
+        } catch (e) {
+            console.log('Could not start screen recording:', e);
+        }
+    },
+
+    /**
+     * Take screenshot and video on test failure, attach Appium logs
+     */
+    afterTest: async function(test, context, { error, result, duration, passed, retries }) {
+        // Stop screen recording and attach video
+        let videoBuffer: string | undefined;
+        try {
+            videoBuffer = await driver.stopRecordingScreen();
+        } catch (e) {
+            console.log('Could not stop screen recording:', e);
+        }
+
+        if (!passed) {
+            // Take screenshot on failure
+            const screenshot = await browser.takeScreenshot();
+            allure.addAttachment('Screenshot on Failure', Buffer.from(screenshot, 'base64'), 'image/png');
+
+            // Attach video recording if available
+            if (videoBuffer) {
+                allure.addAttachment('Video Recording', Buffer.from(videoBuffer, 'base64'), 'video/mp4');
+            }
+
+            // Attach Appium server logs
+            const appiumLogPath = join(process.cwd(), 'logs', 'appium.log');
+            if (existsSync(appiumLogPath)) {
+                try {
+                    const logContent = readFileSync(appiumLogPath, 'utf-8');
+                    // Get last 500 lines of log for the attachment
+                    const logLines = logContent.split('\n');
+                    const recentLogs = logLines.slice(-500).join('\n');
+                    allure.addAttachment('Appium Server Logs (last 500 lines)', recentLogs, 'text/plain');
+                } catch (e) {
+                    console.log('Could not read Appium logs:', e);
+                }
+            }
+        }
+    },
 };
