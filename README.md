@@ -112,8 +112,21 @@ appium driver list
 npm install
 ```
 
+2. Create a `./apps` directory and download the demo apps:
 
-2. Create a `./apps` directory at the root of this project and place your app files (`.zip` / `.apk`) into the `./apps` folder.
+```sh
+# Create apps directory
+mkdir -p apps
+
+# Download Android app
+curl -L https://github.com/webdriverio/native-demo-app/releases/download/v1.0.8/android.wdio.native.app.v1.0.8.apk -o apps/android.wdio.native.app.v1.0.8.apk
+
+# Download iOS app
+curl -L https://github.com/webdriverio/native-demo-app/releases/download/v1.0.8/ios.simulator.wdio.native.app.v1.0.8.zip -o apps/ios.simulator.wdio.native.app.v1.0.8.zip
+```
+
+> [!NOTE]
+> The iOS app is for **Simulator only**. For real devices, you need a signed `.ipa` file.
 
 3. List available simulators/emulators:
 
