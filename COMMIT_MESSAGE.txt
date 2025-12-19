@@ -1,0 +1,78 @@
+feat: Configure local iOS/Android test environment with Appium Inspector support
+
+This commit sets up the local mobile app test automation environment with
+the following changes:
+
+## Device Configuration Updates
+
+### iOS Simulator
+- Updated to iPhone 16 Pro with iOS 26.1
+- Configured XCUITest driver capabilities
+- File: config/wdio.ios.app.conf.ts
+
+### Android Emulator  
+- Updated to Medium_Phone_API_36.1 with Android 16
+- Configured UiAutomator2 driver capabilities
+- File: config/wdio.android.app.conf.ts
+
+## Appium Inspector Integration
+
+### Plugin Configuration
+- Added Appium Inspector plugin support in local Appium service
+- Configured `usePlugins: 'inspector'` for element inspection
+- Added `allowInsecure: '*:session_discovery'` for Appium 3.x session discovery
+- File: config/wdio.shared.local.appium.conf.ts
+
+### Documentation
+- Added comprehensive Appium Inspector & Debugging section to TIPS_TRICKS.md
+- Documented plugin setup, web UI access, and debug breakpoint workflow
+- Noted Appium 3.x breaking change: session endpoint moved from /sessions to /appium/sessions
+- File: docs/TIPS_TRICKS.md
+
+## Cucumber BDD Test Support
+
+### iOS Cucumber Configuration (NEW)
+- Created wdio.ios.app.cucumber.conf.ts for iOS BDD tests
+- Configured iPhone 16 Pro simulator with cucumber framework
+- Set up step definitions and feature file paths
+- File: config/wdio.ios.app.cucumber.conf.ts
+
+### Android Cucumber Configuration
+- Synced device configuration with main Android config
+- Updated to Medium_Phone_API_36.1 emulator
+- File: config/wdio.android.app.cucumber.conf.ts
+
+### Step Definition Fix
+- Added 2-second pause before alert detection in signup step
+- Fixes timing issue where iOS alert appears after form submission delay
+- File: tests/steps/login_and_signup_steps.ts
+
+## NPM Scripts
+
+### Added Scripts
+- `ios.app.cucumber`: Run iOS cucumber tests
+- File: package.json
+
+## Test Framework Updates
+
+### Mocha Configuration
+- Increased timeout to 10 minutes for debugging sessions
+- Enabled debug mode in Mocha options
+- File: config/wdio.shared.conf.ts
+
+## Test Results Summary
+
+All tests passing:
+- ✅ Android Mocha tests
+- ✅ Android Cucumber tests  
+- ✅ iOS Mocha tests
+- ✅ iOS Cucumber tests
+
+## Environment
+
+- Node.js: 22.12.0
+- Appium: 3.1.2
+- XCUITest Driver: 10.1.4
+- UiAutomator2 Driver: 5.0.7
+- Appium Inspector Plugin: 2025.11.1
+- WebdriverIO: 9.x
